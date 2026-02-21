@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from POM_Practice.pageObjects.cart import CartPage
 from utils.browserutils import BrowserUtils
-
+from selenium.webdriver.support.wait import WebDriverWait
 
 # EcommercePage handles interactions with the products listing and cart navigation
 class EcommercePage(BrowserUtils):
@@ -30,7 +30,7 @@ class EcommercePage(BrowserUtils):
 
                 # Wait until button is clickable
                 add_to_cart = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, absolute_xpath)))
-                
+
                 # Find the "Add to cart" button inside this product
                 add_to_cart = product.find_element(By.XPATH, ".//button[contains(normalize-space(.), 'Add to cart')]")
 
