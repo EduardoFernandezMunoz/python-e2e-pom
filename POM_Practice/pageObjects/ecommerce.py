@@ -55,7 +55,9 @@ class EcommercePage(BrowserUtils):
             except Exception:
                 attempts += 1
 
-    raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
+        raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
+    
+    
     def go_to_cart(self):
         # Wait until cart button is clickable
         cart_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(self.checkout_button))
