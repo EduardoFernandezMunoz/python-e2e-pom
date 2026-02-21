@@ -34,6 +34,6 @@ jobs:
 
       # Step 4: Run Selenium tests using pytest
       - name: Run tests
-        run: pytest POM_Practice/Tests/
+        run: pytest POM_Practice/tests/
         env:
           PYTHONPATH: ${{ github.workspace }}
