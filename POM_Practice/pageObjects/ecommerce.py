@@ -11,29 +11,28 @@ class EcommercePage(BrowserUtils):
         self.checkout_button = (By.XPATH, "//div[contains(@class, 'profile')]//span[@role='button']")
 
     def add_product_to_cart(self, product_name):
-        # Get all product elements on the page
         products = self.driver.find_elements(*self.product_link)
+        add_to_cart = None  # ensure variable exists
 
-        # Loop through each product to find the one with the desired name
         for product in products:
-
-            # Get the product name text from the product element
             productName = product.find_element(*self.product_name_check).text
-
-            # Check if this is the product we want
             if productName == product_name:
-                # Find the "Add to cart" button inside this product
                 add_to_cart = product.find_element(By.XPATH, ".//button[normalize-space()='Add to cart']")
 
-                # Scroll the button into the center of the viewport
-                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
+                # Wait until the button is clickable (and not covered)
+                WebDriverWait(self.driver, 10).until(
+                    lambda d: add_to_cart.is_displayed() and add_to_cart.is_enabled())
 
-                # Click the button using JavaScript to avoid click interception
+                # Scroll and click safely
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
                 self.driver.execute_script("arguments[0].click();", add_to_cart)
+
+                # Wait for the text to update to "Remove from cart"
+                WebDriverWait(self.driver, 5).until(lambda d: add_to_cart.text.strip() == "Remove from cart")
                 break
 
-        # Verify that the product was added to the cart
-        assert add_to_cart.text == "Remove from cart", "{product_name} was not added to cart"
+        if not add_to_cart:
+            raise Exception(f"Product '{product_name}' not found on page")
 
     # Find and click the cart button in the profile section
     def go_to_cart(self):
