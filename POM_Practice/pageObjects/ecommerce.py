@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from POM_Practice.pageObjects.cart import CartPage
 from utils.browserutils import BrowserUtils
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # EcommercePage handles interactions with the products listing and cart navigation
 class EcommercePage(BrowserUtils):
