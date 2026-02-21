@@ -1,0 +1,39 @@
+# Name of the workflow
+name: Python Selenium CI
+
+# Trigger this workflow on push or pull request events to the main branch
+on:
+  push:
+    branches: [ main ]  # Trigger when code is pushed to main
+  pull_request:
+    branches: [ main ]  # Trigger when a pull request targets main
+
+# Define jobs that will run as part of this workflow
+jobs:
+  build-and-test:
+    # Virtual machine that will run the job
+    runs-on: ubuntu-latest
+
+    # Define the sequence of tasks to execute
+    steps:
+      # Step 1: Check out the repository code so the workflow can access it
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  # Use Python 3.11 for running tests
+
+      # Step 3: Install required dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install selenium pytest
+
+      # Step 4: Run Selenium tests using pytest
+      - name: Run tests
+        run: pytest Tests/ # Execute all tests in the tests/ folder
+        env:
+            PYTHONPATH: ${{ github.workspace }}  
