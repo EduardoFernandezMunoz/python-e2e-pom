@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 from utils.browserutils import BrowserUtils
 from POM_Practice.pageObjects.cart import CartPage
+from selenium.webdriver.support.wait import WebDriverWait
 
 # EcommercePage handles interactions with the products listing and cart navigation
 class EcommercePage(BrowserUtils):
