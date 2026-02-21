@@ -21,24 +21,25 @@ class LoginPage(BrowserUtils):
         password_field = self.driver.find_element(*self.password_input)
         password_field.send_keys(password)
 
-        # Click the "show password" button safely
-        # Wait until clickable, scroll into view, then use ActionChains to click
-        password_button_clickable = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(self.show_password_button)        )
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", password_button_clickable)
-        ActionChains(self.driver).move_to_element(password_button_clickable).click().perform()
+        # --- Click the "show password" button safely ---
+        password_button = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(self.show_password_button)
+        )
+        # Scroll to the element and click using ActionChains
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", password_button)
+        ActionChains(self.driver).move_to_element(password_button).click().perform()
 
-        # Verify the password input is correct
+        # Verify password field
         password_value = password_field.get_attribute("value")
         assert password_value == "Password123", "Password is different from Password123"
 
-        # Click the login/submit button safely
-        # Wait until clickable, scroll into view, then use ActionChains to click
+        # --- Click the login/submit button safely ---
         submit_button = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable(self.go_to_ecommerce_page)
         )
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", submit_button)
+        # Scroll to the center of the button to avoid sticky headers
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", submit_button)
         ActionChains(self.driver).move_to_element(submit_button).click().perform()
 
         # Return the EcommercePage object
-        ecommerce_page = EcommercePage(self.driver)
-        return ecommerce_page
+        return EcommercePage(self.driver)
