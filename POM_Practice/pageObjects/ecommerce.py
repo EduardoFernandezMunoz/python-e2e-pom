@@ -12,6 +12,15 @@ class EcommercePage(BrowserUtils):
         self.product_name_check = (By.XPATH, ".//a[contains(@class, 'font-oswald')]")
         self.checkout_button = (By.XPATH, "//div[contains(@class, 'profile')]//span[@role='button']")
 
+    def wait_for_toast_to_disappear(self, timeout=10):
+        """Espera a que cualquier toast desaparezca antes de intentar click."""
+        try:
+            WebDriverWait(self.driver, timeout).until(
+                EC.invisibility_of_element((By.XPATH, "//li[contains(@data-sonner-toast, '')]"))
+            )
+        except TimeoutException:
+            pass
+
     def add_product_to_cart(self, product_name):
         products = self.driver.find_elements(*self.product_link)
 
