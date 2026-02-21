@@ -1,10 +1,8 @@
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import ElementClickInterceptedException
-from utils.browserutils import BrowserUtils
+from POM_Practice.utils.browserutils import BrowserUtils
 from POM_Practice.pageObjects.cart import CartPage
 
+# EcommercePage handles interactions with the products listing and cart navigation
 class EcommercePage(BrowserUtils):
     def __init__(self, driver):
         super().__init__(driver)
@@ -12,55 +10,33 @@ class EcommercePage(BrowserUtils):
         self.product_name_check = (By.XPATH, ".//a[contains(@class, 'font-oswald')]")
         self.checkout_button = (By.XPATH, "//div[contains(@class, 'profile')]//span[@role='button']")
 
-    def add_product_to_cart(self, product_name, max_attempts=5):
+    def add_product_to_cart(self, product_name):
+        # Get all product elements on the page
         products = self.driver.find_elements(*self.product_link)
-        add_to_cart = None
 
+        # Loop through each product to find the one with the desired name
         for product in products:
+
+            # Get the product name text from the product element
             productName = product.find_element(*self.product_name_check).text
+
+            # Check if this is the product we want
             if productName == product_name:
+                # Find the "Add to cart" button inside this product
                 add_to_cart = product.find_element(By.XPATH, ".//button[normalize-space()='Add to cart']")
+
+                # Scroll the button into the center of the viewport
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
+
+                # Click the button using JavaScript to avoid click interception
+                self.driver.execute_script("arguments[0].click();", add_to_cart)
                 break
 
-        if not add_to_cart:
-            raise Exception(f"Product '{product_name}' not found on page.")
+        # Verify that the product was added to the cart
+        assert add_to_cart.text == "Remove from cart", "{product_name} was not added to cart"
 
-        attempts = 0
-        while attempts < max_attempts:
-            try:
-                # Espera visible + clickeable
-                WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable(add_to_cart))
-
-                # Scroll dinámico centrado
-                self.driver.execute_script(
-                    "arguments[0].scrollIntoView({block: 'center'});", add_to_cart
-                )
-
-                # Click normal
-                add_to_cart.click()
-
-                # Fallback JS
-                if add_to_cart.text.strip() != "Remove from cart":
-                    self.driver.execute_script("arguments[0].click();", add_to_cart)
-
-                # Verificación final
-                if add_to_cart.text.strip() == "Remove from cart":
-                    return
-
-            except ElementClickInterceptedException:
-                attempts += 1
-                self.driver.execute_script("window.scrollBy(0, 50);")
-            except Exception:
-                attempts += 1
-
-        raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
-        
-
+    # Find and click the cart button in the profile section
     def go_to_cart(self):
-        # Wait until cart button is clickable
-        cart_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(self.checkout_button))
-        # Scroll to center
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", cart_button)
-        # Click safely
-        self.driver.execute_script("arguments[0].click();", cart_button)
-        return CartPage(self.driver)
+        self.driver.find_element(*self.checkout_button).click()
+        cart_page = CartPage(self.driver)
+        return cart_page
