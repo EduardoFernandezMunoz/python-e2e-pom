@@ -23,6 +23,14 @@ class EcommercePage(BrowserUtils):
 
             # Check if this is the product we want
             if productName == product_name:
+
+                # Build absolute XPath for the Add to cart button based on product index
+                index = products.index(product) + 1  # XPath indices start at 1
+                absolute_xpath = f"/html/body//div[contains(@class,'products')]/div[{index}]/button[normalize-space()='Add to cart']"
+
+                # Wait until button is clickable
+                add_to_cart = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, absolute_xpath)))
+                
                 # Find the "Add to cart" button inside this product
                 add_to_cart = product.find_element(By.XPATH, ".//button[contains(normalize-space(.), 'Add to cart')]")
 
