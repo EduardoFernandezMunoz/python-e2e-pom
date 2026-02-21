@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
-from pageObjects.cart import CartPage  # Asegúrate de tener tu página de carrito definida
+from POM_Practice.pageObjects.cart import CartPage  #Asegúrate de tener tu página de carrito definida
 
 class EcommercePage:
     def __init__(self, driver):
