@@ -50,3 +50,9 @@ class EcommercePage(BrowserUtils):
                 if attempt == max_attempts:
                     raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts") from e
                 time.sleep(1)
+
+    # Find and click the cart button in the profile section
+    def go_to_cart(self):
+        self.driver.find_element(*self.checkout_button).click()
+        cart_page = CartPage(self.driver)
+        return cart_page
