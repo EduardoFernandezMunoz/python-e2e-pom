@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from POM_Practice.utils.browserutils import BrowserUtils
+from utils.browserutils import BrowserUtils
 from POM_Practice.pageObjects.cart import CartPage
 
 # EcommercePage handles interactions with the products listing and cart navigation
