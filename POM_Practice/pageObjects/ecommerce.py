@@ -2,6 +2,9 @@ from selenium.webdriver.common.by import By
 from utils.browserutils import BrowserUtils
 from POM_Practice.pageObjects.cart import CartPage
 from selenium.webdriver.support.wait import WebDriverWait
+import time
+from selenium.common.exceptions import ElementClickInterceptedException, StaleElementReferenceException
+
 
 # EcommercePage handles interactions with the products listing and cart navigation
 class EcommercePage(BrowserUtils):
@@ -11,25 +14,37 @@ class EcommercePage(BrowserUtils):
         self.product_name_check = (By.XPATH, ".//a[contains(@class, 'font-oswald')]")
         self.checkout_button = (By.XPATH, "//div[contains(@class, 'profile')]//span[@role='button']")
 
-    def add_product_to_cart(self, product_name):
+    def add_product_to_cart(self, product_name, retries=3):
+    # Get all products
         products = self.driver.find_elements(*self.product_link)
-        add_to_cart = None  # ensure variable exists
 
         for product in products:
+            # Get product name
             productName = product.find_element(*self.product_name_check).text
             if productName == product_name:
                 add_to_cart = product.find_element(By.XPATH, ".//button[normalize-space()='Add to cart']")
 
-                # Wait until the button is clickable (and not covered)
-                WebDriverWait(self.driver, 10).until(
-                    lambda d: add_to_cart.is_displayed() and add_to_cart.is_enabled())
+                # Retry loop in case click is intercepted
+                for attempt in range(retries):
+                    try:
+                        # Scroll into view and click
+                        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
+                        add_to_cart.click()  # normal Selenium click first
+                        break  # success, exit retry loop
+                    except (ElementClickInterceptedException, StaleElementReferenceException):
+                        # Wait a little and retry
+                        time.sleep(0.5)
+                        # If normal click fails, try JavaScript click as fallback
+                        self.driver.execute_script("arguments[0].click();", add_to_cart)
+                else:
+                    raise Exception(f"Could not click 'Add to cart' for {product_name} after {retries} attempts")
 
-                # Scroll and click safely
-                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
-                self.driver.execute_script("arguments[0].click();", add_to_cart)
+                # Optional: small wait to ensure UI updates
+                time.sleep(0.5)
 
-                # Wait for the text to update to "Remove from cart"
-                WebDriverWait(self.driver, 5).until(lambda d: add_to_cart.text.strip() == "Remove from cart")
+                # Verify that product was added
+                new_text = add_to_cart.text
+                assert new_text == "Remove from cart", f"{product_name} was not added to cart"
                 break
 
         if not add_to_cart:
