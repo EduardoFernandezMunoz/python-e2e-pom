@@ -19,7 +19,7 @@ class EcommercePage(BrowserUtils):
                 EC.invisibility_of_element((By.XPATH, "//li[contains(@data-sonner-toast, '')]"))
             )
         except TimeoutException:
-            pass  # No hay toast visible, seguimos
+            pass
 
     def add_product_to_cart(self, product_name, max_attempts=5):
         products = self.driver.find_elements(*self.product_link)
@@ -38,17 +38,23 @@ class EcommercePage(BrowserUtils):
         while attempts < max_attempts:
             try:
                 self.wait_for_toast_to_disappear()
+                WebDriverWait(self.driver, 5).until(
+                    EC.element_to_be_clickable(add_to_cart)
+                )
                 add_to_cart.click()
+
                 if add_to_cart.text.strip() == "Remove from cart":
                     return
-                else:
-                    # fallback JS click
-                    self.driver.execute_script("arguments[0].click();", add_to_cart)
-                    if add_to_cart.text.strip() == "Remove from cart":
-                        return
+
+                # fallback JS click
+                self.driver.execute_script("arguments[0].click();", add_to_cart)
+                if add_to_cart.text.strip() == "Remove from cart":
+                    return
+
             except ElementClickInterceptedException:
                 attempts += 1
                 self.driver.execute_script("window.scrollBy(0, 50);")  # scroll un poco y reintenta
+
         raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
 
     def go_to_cart(self):
