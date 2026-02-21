@@ -24,7 +24,7 @@ class EcommercePage(BrowserUtils):
             # Check if this is the product we want
             if productName == product_name:
                 # Find the "Add to cart" button inside this product
-                add_to_cart = product.find_element(By.XPATH, ".//button[normalize-space()='Add to cart']")
+                add_to_cart = product.find_element(By.XPATH, ".//button[contains(normalize-space(.), 'Add to cart')]")
 
                 # Scroll the button into the center of the viewport
                 self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
