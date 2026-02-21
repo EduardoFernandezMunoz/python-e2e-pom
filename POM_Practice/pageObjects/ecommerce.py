@@ -4,7 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (ElementClickInterceptedException,TimeoutException,NoSuchElementException)
 
-class EcommercePage:
+class EcommercePage(BrowserUtils):
     def __init__(self, driver):
         self.driver = driver
         # Localizadores generales
