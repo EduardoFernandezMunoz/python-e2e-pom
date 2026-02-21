@@ -50,6 +50,15 @@ class EcommercePage(BrowserUtils):
                 raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
 
     def go_to_cart(self):
-        self.wait_for_toast_to_disappear()
-        self.driver.find_element(*self.checkout_button).click()
+        # Esperar a que los toasts desaparezcan
+        try:
+            toast = (By.CSS_SELECTOR, "li[data-sonner-toast]")  # selector del toast
+            WebDriverWait(self.driver, 10).until(EC.invisibility_of_element_located(toast))
+        except:
+            pass  # si no aparece toast, seguir
+
+        # Ahora sí hacer click en el carrito
+        checkout_button = self.checkout_button
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(checkout_button))
+        self.driver.find_element(*checkout_button).click()
         return CartPage(self.driver)
