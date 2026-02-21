@@ -12,7 +12,7 @@ class EcommercePage(BrowserUtils):
         self.product_name_check = (By.XPATH, ".//a[contains(@class, 'font-oswald')]")
         self.checkout_button = (By.XPATH, "//div[contains(@class, 'profile')]//span[@role='button']")
 
-    def add_product_to_cart(self, product_name, max_attempts=3):
+    def add_product_to_cart(self, product_name, max_attempts=5):
         products = self.driver.find_elements(*self.product_link)
         add_to_cart = None
 
@@ -28,32 +28,34 @@ class EcommercePage(BrowserUtils):
         attempts = 0
         while attempts < max_attempts:
             try:
-                # Wait until the button is visible and clickable
-                WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, ".//button[normalize-space()='Add to cart']")))
-                
-                # Scroll to center of the button
-                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
-                
-                # Try normal click first
-                add_to_cart.click()
+                # Scroll the button to center + extra offset
+                self.driver.execute_script(
+                    "const rect = arguments[0].getBoundingClientRect();"
+                    "window.scrollBy(0, rect.top - window.innerHeight/2 - 100);",
+                    add_to_cart
+                )
 
-                # Verify button text changed to "Remove from cart"
+                # Wait until clickable
+                WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH, ".//button[normalize-space()='Add to cart']")))
+
+                # Try normal click
+                add_to_cart.click()
+                
+                # Fallback: JS click if text doesn't change
+                if add_to_cart.text.strip() != "Remove from cart":
+                    self.driver.execute_script("arguments[0].click();", add_to_cart)
+
+                # Confirm
                 if add_to_cart.text.strip() == "Remove from cart":
                     return
-                else:
-                    # Fallback: click with JS if normal click didn't work
-                    self.driver.execute_script("arguments[0].click();", add_to_cart)
-                    if add_to_cart.text.strip() == "Remove from cart":
-                        return
 
             except ElementClickInterceptedException:
                 attempts += 1
-                self.driver.execute_script("window.scrollBy(0, 50);")  # Scroll a bit and retry
+                self.driver.execute_script("window.scrollBy(0, 50);")  # scroll a little and retry
             except Exception:
                 attempts += 1
 
-        raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
-
+    raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
     def go_to_cart(self):
         # Wait until cart button is clickable
         cart_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(self.checkout_button))
