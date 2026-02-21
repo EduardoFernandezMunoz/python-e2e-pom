@@ -36,4 +36,4 @@ jobs:
       - name: Run tests
         run: pytest Tests/ # Execute all tests in the tests/ folder
         env:
-            PYTHONPATH: ${{ github.workspace }}  
+            PYTHONPATH: ${{ github.workspace }}/python-e2e-pom  
