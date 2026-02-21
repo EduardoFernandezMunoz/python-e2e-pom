@@ -15,6 +15,14 @@
       "firstName": "Sara",
       "lastName": "Ruiz Romero",
       "zipCode": "29016"
+    },
+    {
+      "userEmail": "student@qabrains.com",
+      "userPassword": "Password123",
+      "productName": "Sample Trouser Name",
+      "firstName": "Pedro",
+      "lastName": "Perez Pinto",
+      "zipCode": "60312"
     }
   ]
 }
