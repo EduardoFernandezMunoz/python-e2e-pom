@@ -3,6 +3,7 @@ from POM_Practice.pageObjects.ecommerce import EcommercePage
 from utils.browserutils import BrowserUtils
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
 
 # LoginPage handles login screen interactions
 class LoginPage(BrowserUtils):
@@ -23,7 +24,8 @@ class LoginPage(BrowserUtils):
 
         # Validate password input is correct
         password_button_clickable = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(self.show_password_button))
-        password_button_clickable.click()
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", password_button_clickable)
+        ActionChains(self.driver).move_to_element(password_button_clickable).click().perform()
         password_value = password_field.get_attribute("value")
         assert password_value == "Password123", "Password is different from Password123"
 
