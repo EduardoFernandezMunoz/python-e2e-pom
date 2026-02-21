@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from POM_Practice.pageObjects.ecommerce import EcommercePage
 from utils.browserutils import BrowserUtils
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 # LoginPage handles login screen interactions
 class LoginPage(BrowserUtils):
