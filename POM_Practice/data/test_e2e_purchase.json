@@ -7,7 +7,14 @@
       "firstName": "Eduardo",
       "lastName": "Fernández Muñoz",
       "zipCode": "60326"
+    },
+    {
+      "userEmail": "practice@qabrains.com",
+      "userPassword": "Password123",
+      "productName": "Sample T-Shirt Name",
+      "firstName": "Sara",
+      "lastName": "Ruiz Romero",
+      "zipCode": "29016"
     }
-    
   ]
 }
