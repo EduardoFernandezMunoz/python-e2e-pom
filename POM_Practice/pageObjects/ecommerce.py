@@ -1,5 +1,4 @@
 from selenium.webdriver.common.by import By
-from POM_Practice.utils.browserutils import BrowserUtils
 from POM_Practice.pageObjects.cart import CartPage
 from utils.browserutils import BrowserUtils
 
