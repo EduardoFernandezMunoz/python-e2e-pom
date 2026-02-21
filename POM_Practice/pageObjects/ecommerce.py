@@ -8,45 +8,45 @@ from selenium.webdriver.support import expected_conditions as EC
 class EcommercePage(BrowserUtils):
     def __init__(self, driver):
         super().__init__(driver)
-        self.product_link = (By.XPATH, "//div[contains(@class, 'products')]/div")
+        self.product_container = (By.XPATH, "//div[contains(@class, 'products')]/div")
         self.product_name_check = (By.XPATH, ".//a[contains(@class, 'font-oswald')]")
         self.checkout_button = (By.XPATH, "//div[contains(@class, 'profile')]//span[@role='button']")
 
     def add_product_to_cart(self, product_name):
-        # Get all product elements on the page
-        products = self.driver.find_elements(*self.product_link)
+        """
+        Adds the product with the given name to the cart.
+        Uses dynamic XPath based on product name, scrolls into view, waits for clickability,
+        and clicks using JS to avoid click interception issues.
+        """
+        # Build dynamic XPath directly to the "Add to cart" button of the product
+        add_to_cart_xpath = (
+            f"//div[contains(@class,'products')]"
+            f"//a[contains(@class,'font-oswald') and normalize-space(text())='{product_name}']"
+            f"/ancestor::div[contains(@class,'product')]"
+            f"//button[normalize-space()='Add to cart']"
+        )
 
-        # Loop through each product to find the one with the desired name
-        for product in products:
+        # Wait until the button is clickable
+        add_to_cart_button = WebDriverWait(self.driver, 15).until(
+            EC.element_to_be_clickable((By.XPATH, add_to_cart_xpath))
+        )
 
-            # Get the product name text from the product element
-            productName = product.find_element(*self.product_name_check).text
+        # Scroll into center of viewport
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart_button)
 
-            # Check if this is the product we want
-            if productName == product_name:
+        # Click with JS to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", add_to_cart_button)
 
-                # Build absolute XPath for the Add to cart button based on product index
-                index = products.index(product) + 1  # XPath indices start at 1
-                absolute_xpath = f"/html/body//div[contains(@class,'products')]/div[{index}]/button[normalize-space()='Add to cart']"
+        # Optional: verify button text changed to "Remove from cart"
+        WebDriverWait(self.driver, 5).until(
+            lambda d: add_to_cart_button.text.strip() == "Remove from cart"
+        )
 
-                # Wait until button is clickable
-                add_to_cart = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, absolute_xpath)))
-
-                # Find the "Add to cart" button inside this product
-                add_to_cart = product.find_element(By.XPATH, ".//button[contains(normalize-space(.), 'Add to cart')]")
-
-                # Scroll the button into the center of the viewport
-                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
-
-                # Click the button using JavaScript to avoid click interception
-                self.driver.execute_script("arguments[0].click();", add_to_cart)
-                break
-
-        # Verify that the product was added to the cart
-        assert add_to_cart.text == "Remove from cart", "{product_name} was not added to cart"
-
-    # Find and click the cart button in the profile section
     def go_to_cart(self):
-        self.driver.find_element(*self.checkout_button).click()
-        cart_page = CartPage(self.driver)
-        return cart_page
+        """
+        Clicks the cart/checkout button in the profile section and returns the CartPage object.
+        """
+        WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(self.checkout_button)
+        ).click()
+        return CartPage(self.driver)
