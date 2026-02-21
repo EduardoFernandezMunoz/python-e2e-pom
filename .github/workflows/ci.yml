@@ -4,9 +4,9 @@ name: Python Selenium CI
 # Trigger this workflow on push or pull request events to the main branch
 on:
   push:
-    branches: [ main ]  # Trigger when code is pushed to main
+    branches: [ fix/project-structure ]  # Trigger when code is pushed to main
   pull_request:
-    branches: [ main ]  # Trigger when a pull request targets main
+    branches: [ fix/project-structure ]  # Trigger when a pull request targets main
 
 # Define jobs that will run as part of this workflow
 jobs:
