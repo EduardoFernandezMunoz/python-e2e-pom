@@ -34,6 +34,6 @@ jobs:
 
       # Step 4: Run Selenium tests using pytest
       - name: Run tests
-        run: pytest Tests/ # Execute all tests in the tests/ folder
+        run: pytest POM_Practice/Tests/
         env:
-            PYTHONPATH: ${{ github.workspace }}/python-e2e-pom  
+          PYTHONPATH: ${{ github.workspace }}
