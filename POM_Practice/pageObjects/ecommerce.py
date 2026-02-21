@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import ElementClickInterceptedException
 from utils.browserutils import BrowserUtils
 from POM_Practice.pageObjects.cart import CartPage
 
@@ -11,69 +11,47 @@ class EcommercePage(BrowserUtils):
         self.product_link = (By.XPATH, "//div[contains(@class, 'products')]/div")
         self.product_name_check = (By.XPATH, ".//a[contains(@class, 'font-oswald')]")
         self.checkout_button = (By.XPATH, "//div[contains(@class, 'profile')]//span[@role='button']")
-        self.toast_selector = (By.CSS_SELECTOR, "li[data-type='success']")
 
-    def wait_for_toast_to_disappear(self, timeout=8):
+    def wait_for_toast_to_disappear(self, timeout=10):
+        """Espera a que cualquier toast desaparezca antes de intentar click."""
         try:
             WebDriverWait(self.driver, timeout).until(
-                EC.invisibility_of_element_located(self.toast_selector)
+                EC.invisibility_of_element((By.XPATH, "//li[contains(@data-sonner-toast, '')]"))
             )
-        except:
-            pass  # ignore if toast never appeared
+        except TimeoutException:
+            pass  # No hay toast visible, seguimos
 
     def add_product_to_cart(self, product_name, max_attempts=5):
         products = self.driver.find_elements(*self.product_link)
         add_to_cart = None
 
         for product in products:
-            name = product.find_element(*self.product_name_check).text
-            if name.strip() == product_name:
-                add_to_cart = product.find_element(
-                    By.XPATH, ".//button[normalize-space()='Add to cart']"
-                )
+            pname = product.find_element(*self.product_name_check).text
+            if pname == product_name:
+                add_to_cart = product.find_element(By.XPATH, ".//button[normalize-space()='Add to cart']")
                 break
 
         if not add_to_cart:
-            raise Exception(f"Product '{product_name}' not found on page.")
+            raise Exception(f"Product '{product_name}' not found on page")
 
-        for attempt in range(max_attempts):
-            # 🎯 Wait for toast to disappear before clicking
-            self.wait_for_toast_to_disappear()
-
-            # Scroll the button into view at the centre
-            self.driver.execute_script(
-                "arguments[0].scrollIntoView({block: 'center'});", add_to_cart
-            )
-
+        attempts = 0
+        while attempts < max_attempts:
             try:
-                # Wait until button really is clickable
-                WebDriverWait(self.driver, 8).until(
-                    EC.element_to_be_clickable((By.XPATH, ".//button[normalize-space()='Add to cart']"))
-                )
-
-                # Normal click
+                self.wait_for_toast_to_disappear()
                 add_to_cart.click()
-
-                # Verify change or fallback JS click
-                if add_to_cart.text.strip() != "Remove from cart":
-                    self.driver.execute_script("arguments[0].click();", add_to_cart)
-
-                # If successful, stop
                 if add_to_cart.text.strip() == "Remove from cart":
                     return
-
+                else:
+                    # fallback JS click
+                    self.driver.execute_script("arguments[0].click();", add_to_cart)
+                    if add_to_cart.text.strip() == "Remove from cart":
+                        return
             except ElementClickInterceptedException:
-                # scroll a bit more and retry
-                self.driver.execute_script("window.scrollBy(0, 80);")
-
-        raise Exception(
-            f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts"
-        )
+                attempts += 1
+                self.driver.execute_script("window.scrollBy(0, 50);")  # scroll un poco y reintenta
+        raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
 
     def go_to_cart(self):
-        cart_btn = WebDriverWait(self.driver, 8).until(
-            EC.element_to_be_clickable(self.checkout_button)
-        )
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", cart_btn)
-        self.driver.execute_script("arguments[0].click();", cart_btn)
+        self.wait_for_toast_to_disappear()
+        self.driver.find_element(*self.checkout_button).click()
         return CartPage(self.driver)
