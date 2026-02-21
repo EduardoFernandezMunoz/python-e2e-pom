@@ -1,6 +1,6 @@
 from selenium.webdriver.common.by import By
 from POM_Practice.pageObjects.checkout_info import CheckoutInfoPage
-from POM_Practice.utils.browserutils import BrowserUtils
+from utils.browserutils import BrowserUtils
 
 class CartPage(BrowserUtils):
     def __init__(self, driver):

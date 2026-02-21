@@ -1,4 +1,4 @@
-from POM_Practice.utils.browserutils import BrowserUtils
+from utils.browserutils import BrowserUtils
 from selenium.webdriver.common.by import By
 
 

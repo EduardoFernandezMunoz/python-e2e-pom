@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from POM_Practice.pageObjects.checkout_complete import CheckoutCompletePage
-from POM_Practice.utils.browserutils import BrowserUtils
+from utils.browserutils import BrowserUtils
 
 
 class CheckoutOverviewPage(BrowserUtils):
