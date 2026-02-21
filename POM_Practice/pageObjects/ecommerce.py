@@ -1,64 +1,59 @@
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from utils.browserutils import BrowserUtils
-from POM_Practice.pageObjects.cart import CartPage
+from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
+from pageObjects.cart import CartPage  # Asegúrate de tener tu página de carrito definida
 
-class EcommercePage(BrowserUtils):
+class EcommercePage:
     def __init__(self, driver):
-        super().__init__(driver)
-        self.product_link = (By.XPATH, "//div[contains(@class, 'products')]/div")
-        self.product_name_check = (By.XPATH, ".//a[contains(@class, 'font-oswald')]")
-        self.checkout_button = (By.XPATH, "//div[contains(@class, 'profile')]//span[@role='button']")
+        self.driver = driver
+        # Selectores principales
+        self.add_to_cart_buttons = (By.CSS_SELECTOR, "button:has(span:text('Add to cart'))")
+        self.checkout_button = (By.CSS_SELECTOR, "a[href*='cart']")  # Ajusta según tu sitio
+        self.toast_selector = (By.CSS_SELECTOR, "li[data-sonner-toast]")
 
-    def wait_for_toast_to_disappear(self, timeout=10):
-        """Espera a que cualquier toast desaparezca antes de intentar click."""
+    def wait_for_element_clickable(self, locator, timeout=10):
+        """Espera a que un elemento sea clickable, ignorando overlays/toasts"""
         try:
-            WebDriverWait(self.driver, timeout).until(
-                EC.invisibility_of_element((By.XPATH, "//li[contains(@data-sonner-toast, '')]"))
+            return WebDriverWait(self.driver, timeout).until(
+                EC.element_to_be_clickable(locator)
             )
         except TimeoutException:
+            raise Exception(f"Elemento {locator} no clickable después de {timeout} segundos")
+
+    def wait_for_toasts_to_disappear(self, timeout=5):
+        """Espera a que desaparezcan los popups de confirmación"""
+        try:
+            WebDriverWait(self.driver, timeout).until(
+                EC.invisibility_of_element_located(self.toast_selector)
+            )
+        except TimeoutException:
+            # Si no desaparecen, no bloquea el flujo
             pass
 
     def add_product_to_cart(self, product_name):
-        products = self.driver.find_elements(*self.product_link)
-
-        for product in products:
-            productName = product.find_element(*self.product_name_check).text
-            if productName == product_name:
-                add_to_cart = product.find_element(By.XPATH, ".//button[normalize-space()='Add to cart']")
-
-                # Scroll button into view
-                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_to_cart)
-
-                attempts = 0
-                max_attempts = 5
-                while attempts < max_attempts:
-                    try:
-                        # Espera a que no haya toasts activos
-                        WebDriverWait(self.driver, 5).until(
-                            EC.invisibility_of_element_located((By.CSS_SELECTOR, "li[data-type='success']"))
-                        )
-                        add_to_cart.click()
-                        
-                        # Comprobar si se cambió el texto
-                        if add_to_cart.text.strip() == "Remove from cart":
-                            return
-                    except (ElementClickInterceptedException, TimeoutException):
-                        attempts += 1
-                raise Exception(f"Could not click 'Add to cart' for {product_name} after {max_attempts} attempts")
+        """Añade un producto al carrito de forma segura"""
+        # Buscamos el botón específico del producto
+        button_locator = (
+            By.XPATH, f"//h3[text()='{product_name}']/following-sibling::button[span[text()='Add to cart']]"
+        )
+        attempts = 0
+        max_attempts = 5
+        while attempts < max_attempts:
+            try:
+                button = self.wait_for_element_clickable(button_locator)
+                button.click()
+                # Esperamos que aparezca el toast y luego desaparezca
+                self.wait_for_toasts_to_disappear()
+                return
+            except ElementClickInterceptedException:
+                attempts += 1
+                self.driver.execute_script("window.scrollBy(0, 50);")
+        raise Exception(f"No se pudo añadir {product_name} al carrito después de {max_attempts} intentos")
 
     def go_to_cart(self):
-        # Esperar a que los toasts desaparezcan
-        try:
-            toast = (By.CSS_SELECTOR, "li[data-sonner-toast]")  # selector del toast
-            WebDriverWait(self.driver, 10).until(EC.invisibility_of_element_located(toast))
-        except:
-            pass  # si no aparece toast, seguir
-
-        # Ahora sí hacer click en el carrito
-        checkout_button = self.checkout_button
-        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(checkout_button))
-        self.driver.find_element(*checkout_button).click()
+        """Navega al carrito de forma segura"""
+        self.wait_for_toasts_to_disappear()  # Por si hay un toast activo
+        cart_btn = self.wait_for_element_clickable(self.checkout_button)
+        cart_btn.click()
         return CartPage(self.driver)
