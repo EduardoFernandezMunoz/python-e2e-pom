@@ -43,3 +43,12 @@ jobs:
         with:
           name: junit-report
           path: POM_Practice/results.xml
+
+      - name: Publish Test Results to GitHub
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Python Selenium Tests
+          path: POM_Practice/results.xml
+          reporter: github-pr-check
+          fail-on-error: true 
