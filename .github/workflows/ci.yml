@@ -3,7 +3,7 @@ name: Python Selenium CI
 # Trigger workflow on push or pull request to the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [ master, fix/project-structure ]
   pull_request:
     branches: [ master ]
 
