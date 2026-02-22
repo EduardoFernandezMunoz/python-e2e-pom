@@ -50,5 +50,4 @@ jobs:
         with:
           name: Python Selenium Tests
           path: POM_Practice/results.xml
-          reporter: github-check
-          fail-on-error: true 
+          reporter: github-actions
