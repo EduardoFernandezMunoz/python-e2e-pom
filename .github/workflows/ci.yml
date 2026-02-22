@@ -1,44 +1,35 @@
 name: Python Selenium CI
 
-# Trigger workflow on push or pull request to the master branch
 on:
   push:
     branches: [ master, fix/project-structure ]
   pull_request:
     branches: [ master ]
 
-# Define jobs
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest  # GitHub runner
-
+    runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout repository code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Setup Python environment
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12' 
+          python-version: '3.12'
 
-      # Step 3: Install required dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install selenium pytest pytest-html
 
-      # Step 4: Run Selenium tests and generate HTML & JUnit reports
-      - name: Run tests and generate report
+      - name: Run tests and generate reports
         run: |
           cd POM_Practice
-          # Run pytest with HTML report and JUnit XML report
           pytest tests/ --html=report.html --self-contained-html --junitxml=results.xml
         env:
           PYTHONPATH: ${{ github.workspace }}
 
-      # Step 5: Upload the HTML report as an artifact
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
@@ -46,28 +37,9 @@ jobs:
           name: pytest-html-report
           path: POM_Practice/report.html
 
-      # Step 6: Upload the JUnit XML report as an artifact
       - name: Upload JUnit XML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: junit-report
           path: POM_Practice/results.xml
-
-  publish-report:
-    needs: [build-and-test]
-    runs-on: ubuntu-latest
-
-    steps:
-      # Step 1: Download the JUnit XML report from previous job
-      - name: Download JUnit XML
-        if: always()
-        uses: actions/download-artifact@v4
-        with: 
-          name: junit-report
-
-      # Step 2: Publish JUnit test results to GitHub UI
-      - name: Publish Test Results to GitHub
-        uses: actions/upload-test-report@v2
-        with:
-          test-results: junit-report/results.xml
