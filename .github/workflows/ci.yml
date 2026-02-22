@@ -1,5 +1,6 @@
 name: Python Selenium CI
-
+permissions:
+  checks: write
 on:
   push:
     branches: [ master, fix/project-structure ]
